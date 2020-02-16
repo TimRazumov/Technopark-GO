@@ -27,7 +27,7 @@ func parse(ostream []string) (input, output string, flags map[string]int) {
 	return input, output, flags
 }
 
-func readFromFile(fileName string) (res []string, err error) {
+func readFile(fileName string) (res []string, err error) {
 	file, err := os.Open(fileName)
     if err != nil {
         return res, err
@@ -37,27 +37,41 @@ func readFromFile(fileName string) (res []string, err error) {
     if err != nil {
         return res, err
     }
-    binСontent := make([]byte, stat.Size())
+    binСontent := make([]byte, stat.Size() - 1)
     _, err = file.Read(binСontent)
     if err != nil {
         return res, err
     }
     res = strings.Split(strings.Trim(string(binСontent), "\r"), "\n")
+    // res = res[0 : len(res) - 1]
     return res, err
+}
+
+func writeFile(data []string, fileName string) (err error) {
+	file, err := os.Create(fileName)
+    if err != nil {
+        return err
+    }
+    defer file.Close()
+    for _, elem := range data {
+    	fmt.Fprintln(file, elem)
+    }
+    return err
 }
 
 func applyFlags(data string, flags map[string]int) (res string) {
 	res = data
-    if _, has := flags["-f"]; has {
-    	res = strings.ToLower(data)
-
-    }
     if col, has := flags["-k"]; has {
-    	res = strings.Split(data, " ")[col]
+    	res = strings.Split(res, " ")[col]
+    }
+    if _, has := flags["-f"]; has {
+    	res = strings.ToLower(res)
+
     }
     return res
 }
 
+// с флагом -n и числами 1.10 и 1.1 не сработает
 func removeDuplicates(data []string, flags map[string]int) (res []string) {
     hasElem := make(map[string]bool)
 	for _, elem := range data {
@@ -71,6 +85,12 @@ func removeDuplicates(data []string, flags map[string]int) (res []string) {
 }
 
 func mySort(data []string, flags map[string]int) (res []string) {
+	defer func() {
+        if r := recover(); r != nil {
+            fmt.Println(r)
+            res = data
+        }
+    }()
 	res = data
     if _, has := flags["-u"]; has {
     	res = removeDuplicates(res, flags)
@@ -96,15 +116,18 @@ func mySort(data []string, flags map[string]int) (res []string) {
 }
 
 func main() {
-	input, /*output*/_, flags := parse(os.Args)
+	input, output, flags := parse(os.Args)
     if len(input) > 0 {
-    	data, err := readFromFile(input)
-    	fmt.Println(mySort(data, flags), err)
-    	/*if len(output) != 0 {
-    		fmt.Println(mySort(data, flags), err)
+    	data, err := readFile(input)
+    	res := mySort(data, flags)
+    	if len(output) != 0 {
+    		err = writeFile(res, output)
     	} else {
-    		fmt.Println(mySort(data, flags), err)
-    	}*/
+    		fmt.Println(res)
+    	}
+    	if err != nil {
+    		fmt.Println(err)
+    	} 
     } else {
         fmt.Println("error")
     }
