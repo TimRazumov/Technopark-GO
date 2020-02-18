@@ -1,11 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
-    "errors"
 )
 
 type stack struct {
@@ -37,10 +37,12 @@ func (this *stack) Size() int {
 
 func GetPriority(op string) int {
 	switch op {
-	case "+", "-":
+	case "(", ")":
 		return 0
-	case "*", "/":
+	case "+", "-":
 		return 1
+	case "*", "/":
+		return 2
 	default:
 		return -1
 	}
@@ -62,16 +64,19 @@ func BasicOp(l int, r int, op string) (int, error) {
 }
 
 func MakeOps(prevOps *stack, nums *stack, currOp string) error {
+	if GetPriority(currOp) == -1 {
+		return errors.New("invalid expr")
+	}
 	if !prevOps.Empty() && currOp != "(" {
 		if currOp == ")" {
 			prevOp := prevOps.Pop().(string)
 			for prevOp != "(" {
 				r, l := nums.Pop().(int), nums.Pop().(int)
-                if res, err := BasicOp(l, r, prevOp); err == nil {
-                    nums.Push(res)
-                } else {
-                    return errors.New("invalid expr")
-                }
+				if res, err := BasicOp(l, r, prevOp); err == nil {
+					nums.Push(res)
+				} else {
+					return errors.New("invalid expr")
+				}
 				prevOp = prevOps.Pop().(string)
 			}
 			return nil
@@ -79,15 +84,15 @@ func MakeOps(prevOps *stack, nums *stack, currOp string) error {
 		if prevOp := prevOps.Top().(string); GetPriority(prevOp) >= GetPriority(currOp) {
 			prevOps.Pop()
 			r, l := nums.Pop().(int), nums.Pop().(int)
-            if res, err := BasicOp(l, r, prevOp); err == nil {
-                nums.Push(res)
-            } else {
-                return errors.New("invalid expr")
-            }
+			if res, err := BasicOp(l, r, prevOp); err == nil {
+				nums.Push(res)
+			} else {
+				return errors.New("invalid expr")
+			}
 		}
 	}
 	prevOps.Push(currOp)
-    return nil
+	return nil
 }
 
 func Calc(expr []string) (int, error) {
@@ -97,8 +102,8 @@ func Calc(expr []string) (int, error) {
 			nums.Push(num)
 		} else {
 			if err := MakeOps(&op, &nums, expr[idx]); err != nil {
-                return 0, err
-            }
+				return 0, err
+			}
 			if expr[idx] == "(" {
 				if expr[idx+1] == "+" || expr[idx+1] == "-" {
 					idx++
@@ -119,10 +124,10 @@ func main() {
 		fmt.Println(expr)
 		slice := strings.Split(expr, "") // string to slice
 		if ans, err := Calc(slice); err == nil {
-            fmt.Println(slice, " = ", ans)
-        } else {
-            fmt.Println(err)
-        }
+			fmt.Println(slice, " = ", ans)
+		} else {
+			fmt.Println(err)
+		}
 	} else {
 		fmt.Println("print expr")
 	}
