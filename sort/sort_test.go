@@ -86,44 +86,44 @@ func TestRemoveDuplicates(t *testing.T) {
 }
 
 func TestMySort(t *testing.T) {
-    flags := map[string]int{
-        "-r": 0,
-        "-u": 0,
-        "-n": 0, 
-        "-k": 1}
-    in := []string{
-        "Apple 3",
-        "BOOK 4",
-        "Book 5",
-        "Go 6",
-        "Hauptbahnhof 10",
-        "January 7",
-        "January 4",
-        "Napkin 1"}
+	flags := map[string]int{
+		"-r": 0,
+		"-u": 0,
+		"-n": 0,
+		"-k": 1}
+	in := []string{
+		"Apple 3",
+		"BOOK 4",
+		"Book 5",
+		"Go 6",
+		"Hauptbahnhof 10",
+		"January 7",
+		"January 4",
+		"Napkin 1"}
 
-    out := []string{
-        "Hauptbahnhof 10",
-        "January 7",
-        "Go 6",
-        "Book 5",
-        "BOOK 4",
-        "Apple 3",
-        "Napkin 1"}
-    if !Equal(MySort(in, flags), out) {
-        t.Error("wrong answer")
-    }
-    flags = map[string]int{
-        "-u": 0,
-        "-f": 0, 
-        "-k": 0}
-    out = []string{
-        "Apple 3",
-        "BOOK 4",
-        "Go 6",
-        "Hauptbahnhof 10",
-        "January 7",
-        "Napkin 1"}
-    if !Equal(MySort(in, flags), out) {
-        t.Error("wrong answer")
-    }
+	out := []string{
+		"Hauptbahnhof 10",
+		"January 7",
+		"Go 6",
+		"Book 5",
+		"BOOK 4",
+		"Apple 3",
+		"Napkin 1"}
+	if !Equal(MySort(in, flags), out) {
+		t.Error("wrong answer")
+	}
+	flags = map[string]int{
+		"-u": 0,
+		"-f": 0,
+		"-k": 0}
+	out = []string{
+		"Apple 3",
+		"BOOK 4",
+		"Go 6",
+		"Hauptbahnhof 10",
+		"January 7",
+		"Napkin 1"}
+	if !Equal(MySort(in, flags), out) {
+		t.Error("wrong answer")
+	}
 }
