@@ -17,16 +17,13 @@ func StartWorker(worker job, in, out chan interface{}, wg *sync.WaitGroup) {
 
 func ExecutePipeline(workers ...job) {
 	wg := &sync.WaitGroup{}
+	wg.Add(len(workers))
 	in := make(chan interface{}, MaxInputDataLen)
-	out := make(chan interface{}, MaxInputDataLen)
-	//nextBuff := make(chan interface{}, MaxInputDataLen)
-	wg.Add(1)
-	go StartWorker(workers[0], in, out, wg)
-	wg.Add(1)
-	go StartWorker(workers[1], out, in, wg)
-	/*for _, worker := range workers {
-		go worker(in, out)
-	}*/
+	for _, worker := range workers {
+		out := make(chan interface{}, MaxInputDataLen)
+		go StartWorker(worker, in, out, wg)
+		in = out
+	}
 	wg.Wait()
 }
 
