@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 	"strconv"
@@ -33,16 +35,10 @@ func ReadFile(fileName string) (res []string, err error) {
 		return res, err
 	}
 	defer file.Close()
-	stat, err := file.Stat()
-	if err != nil {
-		return res, err
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		res = append(res, scanner.Text())
 	}
-	binСontent := make([]byte, stat.Size()-1)
-	_, err = file.Read(binСontent)
-	if err != nil {
-		return res, err
-	}
-	res = strings.Split(strings.Trim(string(binСontent), "\r"), "\n")
 	return res, err
 }
 
@@ -53,7 +49,10 @@ func WriteFile(data []string, fileName string) (err error) {
 	}
 	defer file.Close()
 	for _, elem := range data {
-		fmt.Fprintln(file, elem)
+		_, err = fmt.Fprintln(file, elem)
+		if err != nil {
+			break
+		}
 	}
 	return err
 }
@@ -82,6 +81,20 @@ func RemoveDuplicates(data []string, flags map[string]int) (res []string) {
 	return res
 }
 
+func CompInt(cond bool, l, r float64) bool {
+	if cond {
+		return l > r
+	}
+	return l < r
+}
+
+func CompString(cond bool, l, r string) bool {
+	if cond {
+		return l > r
+	}
+	return l < r
+}
+
 func MySort(data []string, flags map[string]int) (res []string) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -96,37 +109,36 @@ func MySort(data []string, flags map[string]int) (res []string) {
 	sort.Slice(res, func(i, j int) bool {
 		l := ApplyFlags(res[i], flags)
 		r := ApplyFlags(res[j], flags)
+		ans := false
 		_, reverse := flags["-r"]
 		if _, has := flags["-n"]; has {
 			lNum, _ := strconv.ParseFloat(l, 64)
 			rNum, _ := strconv.ParseFloat(r, 64)
-			if reverse {
-				return lNum > rNum
-			}
-			return lNum < rNum
+			ans = CompInt(reverse, lNum, rNum)
+		} else {
+			ans = CompString(reverse, l, r)
 		}
-		if reverse {
-			return l > r
-		}
-		return l < r
+		return ans
 	})
 	return res
 }
 
 func main() {
 	input, output, flags := Parse(os.Args)
-	if len(input) > 0 {
-		data, err := ReadFile(input)
-		res := MySort(data, flags)
-		if len(output) != 0 {
-			err = WriteFile(res, output)
-		} else {
-			fmt.Println(res)
-		}
-		if err != nil {
-			fmt.Println(err)
+	if input == "" {
+		log.Fatal("not enough arguments")
+	}
+	data, err := ReadFile(input)
+	if err != nil {
+		log.Fatal("invalid file")
+	}
+	res := MySort(data, flags)
+	if output != "" {
+		if wErr := WriteFile(res, output); wErr != nil {
+			log.Fatal(wErr)
 		}
 	} else {
-		fmt.Println("error")
+		fmt.Println(res)
 	}
+
 }

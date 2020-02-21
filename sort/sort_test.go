@@ -1,20 +1,10 @@
 package main
 
 import (
+	// "github.com/stretchr/testify/require"
+	"reflect"
 	"testing"
 )
-
-func Equal(l, r []string) bool {
-	if len(l) == len(r) {
-		for idx := 0; idx < len(l); idx++ {
-			if l[idx] != r[idx] {
-				return false
-			}
-		}
-		return true
-	}
-	return false
-}
 
 func TestParse(t *testing.T) {
 	in := []string{"programName", "-o", "kek", "-u", "-k", "3", "-f", "lol"}
@@ -61,7 +51,7 @@ func TestReadFile(t *testing.T) {
 		"January",
 		"Napkin"}
 	in, err := ReadFile("test1.txt")
-	if err != nil || !Equal(out, in) {
+	if err != nil || !reflect.DeepEqual(out, in) {
 		t.Error("wrong answer")
 	}
 	_, err = ReadFile("lolkek")
@@ -76,11 +66,11 @@ func TestRemoveDuplicates(t *testing.T) {
 		"-k": 1}
 	in := []string{"aaa aA", "a90a bB", "a Aa", "a90DAFa cXCS", "a90SDFa bB"}
 	out := []string{"aaa aA", "a90a bB", "a90DAFa cXCS"}
-	if !Equal(RemoveDuplicates(in, flags), out) {
+	if !reflect.DeepEqual(RemoveDuplicates(in, flags), out) {
 		t.Error("wrong answer")
 	}
 	flags = map[string]int{}
-	if !Equal(RemoveDuplicates(in, flags), in) {
+	if !reflect.DeepEqual(RemoveDuplicates(in, flags), in) {
 		t.Error("wrong answer")
 	}
 }
@@ -109,7 +99,7 @@ func TestMySort(t *testing.T) {
 		"BOOK 4",
 		"Apple 3",
 		"Napkin 1"}
-	if !Equal(MySort(in, flags), out) {
+	if !reflect.DeepEqual(MySort(in, flags), out) {
 		t.Error("wrong answer")
 	}
 	flags = map[string]int{
@@ -123,7 +113,7 @@ func TestMySort(t *testing.T) {
 		"Hauptbahnhof 10",
 		"January 7",
 		"Napkin 1"}
-	if !Equal(MySort(in, flags), out) {
+	if !reflect.DeepEqual(MySort(in, flags), out) {
 		t.Error("wrong answer")
 	}
 }

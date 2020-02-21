@@ -68,7 +68,7 @@ var opPriority = map[string]int{
 	")": 0,
 	"+": 1,
 	"-": 1,
-	"*": 2, 
+	"*": 2,
 	"/": 2,
 }
 
@@ -88,7 +88,7 @@ func BasicOp(l int, r int, op string) (int, error) {
 }
 
 func MakeOps(prevOps *stackString, nums *stackInt, currOp string) error {
-	if val, has := opPriority[currOp]; !has {
+	if _, has := opPriority[currOp]; !has {
 		return errors.New("invalid expr")
 	}
 	if !prevOps.Empty() && currOp != "(" {
