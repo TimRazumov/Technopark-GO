@@ -3,49 +3,73 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 )
 
-type stack struct {
-	data []interface{}
+type stackInt struct {
+	data []int
 }
 
-func (this *stack) Top() (val interface{}) {
+func (this *stackInt) Top() (val int) {
 	return this.data[this.Size()-1]
 }
 
-func (this *stack) Pop() (val interface{}) {
+func (this *stackInt) Pop() (val int) {
 	size := this.Size()
 	val = this.data[size-1]
 	this.data = this.data[:size-1]
 	return val
 }
 
-func (this *stack) Push(val ...interface{}) {
+func (this *stackInt) Push(val ...int) {
 	this.data = append(this.data, val...)
 }
 
-func (this *stack) Empty() bool {
+func (this *stackInt) Empty() bool {
 	return len(this.data) == 0
 }
 
-func (this *stack) Size() int {
+func (this *stackInt) Size() int {
 	return len(this.data)
 }
 
-func GetPriority(op string) int {
-	switch op {
-	case "(", ")":
-		return 0
-	case "+", "-":
-		return 1
-	case "*", "/":
-		return 2
-	default:
-		return -1
-	}
+type stackString struct {
+	data []string
+}
+
+func (this *stackString) Top() (val string) {
+	return this.data[this.Size()-1]
+}
+
+func (this *stackString) Pop() (val string) {
+	size := this.Size()
+	val = this.data[size-1]
+	this.data = this.data[:size-1]
+	return val
+}
+
+func (this *stackString) Push(val ...string) {
+	this.data = append(this.data, val...)
+}
+
+func (this *stackString) Empty() bool {
+	return len(this.data) == 0
+}
+
+func (this *stackString) Size() int {
+	return len(this.data)
+}
+
+var opPriority = map[string]int{
+	"(": 0,
+	")": 0,
+	"+": 1,
+	"-": 1,
+	"*": 2, 
+	"/": 2,
 }
 
 func BasicOp(l int, r int, op string) (int, error) {
@@ -63,27 +87,27 @@ func BasicOp(l int, r int, op string) (int, error) {
 	}
 }
 
-func MakeOps(prevOps *stack, nums *stack, currOp string) error {
-	if GetPriority(currOp) == -1 {
+func MakeOps(prevOps *stackString, nums *stackInt, currOp string) error {
+	if val, has := opPriority[currOp]; !has {
 		return errors.New("invalid expr")
 	}
 	if !prevOps.Empty() && currOp != "(" {
 		if currOp == ")" {
-			prevOp := prevOps.Pop().(string)
+			prevOp := prevOps.Pop()
 			for prevOp != "(" {
-				r, l := nums.Pop().(int), nums.Pop().(int)
+				r, l := nums.Pop(), nums.Pop()
 				if res, err := BasicOp(l, r, prevOp); err == nil {
 					nums.Push(res)
 				} else {
 					return errors.New("invalid expr")
 				}
-				prevOp = prevOps.Pop().(string)
+				prevOp = prevOps.Pop()
 			}
 			return nil
 		}
-		if prevOp := prevOps.Top().(string); GetPriority(prevOp) >= GetPriority(currOp) {
+		if prevOp := prevOps.Top(); opPriority[prevOp] >= opPriority[currOp] {
 			prevOps.Pop()
-			r, l := nums.Pop().(int), nums.Pop().(int)
+			r, l := nums.Pop(), nums.Pop()
 			if res, err := BasicOp(l, r, prevOp); err == nil {
 				nums.Push(res)
 			} else {
@@ -96,7 +120,8 @@ func MakeOps(prevOps *stack, nums *stack, currOp string) error {
 }
 
 func Calc(expr []string) (int, error) {
-	var nums, op stack
+	var nums stackInt
+	var op stackString
 	for idx := 0; idx < len(expr); idx++ {
 		if num, err := strconv.Atoi(expr[idx]); err == nil {
 			nums.Push(num)
@@ -104,31 +129,31 @@ func Calc(expr []string) (int, error) {
 			if err := MakeOps(&op, &nums, expr[idx]); err != nil {
 				return 0, err
 			}
-			if expr[idx] == "(" {
-				if expr[idx+1] == "+" || expr[idx+1] == "-" {
-					idx++
-					if expr[idx] == "-" {
-						expr[idx+1] = expr[idx] + expr[idx+1]
-						expr[idx] = ""
-					}
+			if expr[idx] == "(" && (expr[idx+1] == "+" || expr[idx+1] == "-") {
+				idx++
+				if expr[idx] == "-" {
+					expr[idx+1] = expr[idx] + expr[idx+1]
+					expr[idx] = ""
 				}
 			}
 		}
 	}
-	return nums.Pop().(int), nil
+	return nums.Pop(), nil
+}
+
+func Parse(expr string) []string {
+	tmp := "(" + strings.ReplaceAll(os.Args[1], " ", "") + ")"
+	return strings.Split(tmp, "")
 }
 
 func main() {
-	if len(os.Args) == 2 {
-		expr := "(" + os.Args[1] + ")"
-		fmt.Println(expr)
-		slice := strings.Split(expr, "") // string to slice
-		if ans, err := Calc(slice); err == nil {
-			fmt.Println(slice, " = ", ans)
-		} else {
-			fmt.Println(err)
-		}
+	if len(os.Args) < 2 {
+		log.Fatal("not enough arguments")
+	}
+	expr := Parse(os.Args[1])
+	if ans, err := Calc(expr); err == nil {
+		fmt.Println(expr, " = ", ans)
 	} else {
-		fmt.Println("print expr")
+		fmt.Println(err)
 	}
 }

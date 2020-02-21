@@ -28,7 +28,7 @@ func TestBasicOp(t *testing.T) {
 }
 
 func TestStack(t *testing.T) {
-	var s stack
+	var s stackInt
 	size := 50
 	if !s.Empty() {
 		t.Error("wrong answer")
