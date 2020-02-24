@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -10,22 +11,23 @@ import (
 	"strings"
 )
 
-func Parse(ostream []string) (input, output string, flags map[string]int) {
-	flags = make(map[string]int)
-	if len(ostream) >= 2 {
-		input = ostream[len(ostream)-1]
-		for idx := 1; idx < len(ostream)-1; idx++ {
-			if ostream[idx] != "-k" && ostream[idx] != "-o" {
-				flags[ostream[idx]] = 0
-			} else if ostream[idx] == "-o" {
-				output = ostream[idx+1]
-				idx++
-			} else if ostream[idx] == "-k" {
-				flags[ostream[idx]], _ = strconv.Atoi(ostream[idx+1])
-				idx++
-			}
-		}
-	}
+type Flags struct {
+	F bool
+	U bool
+	R bool
+	N bool
+	K int
+}
+
+func Parse(ostream []string) (input, output string, flags Flags) {
+	flag.BoolVar(&flags.F, "f", false, "Case insensitive")
+	flag.BoolVar(&flags.U, "u", false, "Remove duplicates")
+	flag.BoolVar(&flags.R, "r", false, "Reverse result")
+	flag.BoolVar(&flags.N, "n", false, "Sort as numbers")
+	flag.IntVar(&flags.K, "k", -1, "Sort by column")
+	flag.StringVar(&output, "o", "", "Output filename")
+	flag.Parse()
+	input = flag.Arg(0)
 	return input, output, flags
 }
 
@@ -57,19 +59,19 @@ func WriteFile(data []string, fileName string) (err error) {
 	return err
 }
 
-func ApplyFlags(data string, flags map[string]int) (res string) {
+func ApplyFlags(data string, flags Flags) (res string) {
 	res = data
-	if col, has := flags["-k"]; has {
-		res = strings.Split(res, " ")[col]
+	if flags.K != -1 {
+		res = strings.Split(res, " ")[flags.K]
 	}
-	if _, has := flags["-f"]; has {
+	if flags.F {
 		res = strings.ToLower(res)
 
 	}
 	return res
 }
 
-func RemoveDuplicates(data []string, flags map[string]int) (res []string) {
+func RemoveDuplicates(data []string, flags Flags) (res []string) {
 	hasElem := make(map[string]bool)
 	for _, elem := range data {
 		hash := ApplyFlags(elem, flags)
@@ -95,7 +97,7 @@ func CompString(cond bool, l, r string) bool {
 	return l < r
 }
 
-func MySort(data []string, flags map[string]int) (res []string) {
+func MySort(data []string, flags Flags) (res []string) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println(r)
@@ -103,20 +105,19 @@ func MySort(data []string, flags map[string]int) (res []string) {
 		}
 	}()
 	res = data
-	if _, has := flags["-u"]; has {
+	if flags.U {
 		res = RemoveDuplicates(res, flags)
 	}
 	sort.Slice(res, func(i, j int) bool {
 		l := ApplyFlags(res[i], flags)
 		r := ApplyFlags(res[j], flags)
 		ans := false
-		_, reverse := flags["-r"]
-		if _, has := flags["-n"]; has {
+		if flags.N {
 			lNum, _ := strconv.ParseFloat(l, 64)
 			rNum, _ := strconv.ParseFloat(r, 64)
-			ans = CompInt(reverse, lNum, rNum)
+			ans = CompInt(flags.R, lNum, rNum)
 		} else {
-			ans = CompString(reverse, l, r)
+			ans = CompString(flags.R, l, r)
 		}
 		return ans
 	})

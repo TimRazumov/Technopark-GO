@@ -6,40 +6,6 @@ import (
 	"testing"
 )
 
-func TestParse(t *testing.T) {
-	in := []string{"programName", "-o", "kek", "-u", "-k", "3", "-f", "lol"}
-	input, output, flags := Parse(in)
-	if input != "lol" || output != "kek" {
-		t.Error("wrong answer")
-	}
-	if len(flags) != 3 {
-		t.Error("wrong answer")
-	}
-	if param, has := flags["-k"]; !has || param != 3 {
-		t.Error("wrong answer")
-	}
-	if param, has := flags["-u"]; !has || param != 0 {
-		t.Error("wrong answer")
-	}
-	if param, has := flags["-f"]; !has || param != 0 {
-		t.Error("wrong answer")
-	}
-	in = []string{"programName", "-n", "-r", "azaza"}
-	input, output, flags = Parse(in)
-	if input != "azaza" || output != "" {
-		t.Error("wrong answer")
-	}
-	if len(flags) != 2 {
-		t.Error("wrong answer")
-	}
-	if param, has := flags["-r"]; !has || param != 0 {
-		t.Error("wrong answer")
-	}
-	if param, has := flags["-n"]; !has || param != 0 {
-		t.Error("wrong answer")
-	}
-}
-
 func TestReadFile(t *testing.T) {
 	out := []string{
 		"Apple",
@@ -61,26 +27,38 @@ func TestReadFile(t *testing.T) {
 }
 
 func TestRemoveDuplicates(t *testing.T) {
-	flags := map[string]int{
-		"-f": 0,
-		"-k": 1}
+	flags := Flags{
+		F: true,
+		U: false,
+		R: false,
+		N: false,
+		K: 1,
+	}
 	in := []string{"aaa aA", "a90a bB", "a Aa", "a90DAFa cXCS", "a90SDFa bB"}
 	out := []string{"aaa aA", "a90a bB", "a90DAFa cXCS"}
 	if !reflect.DeepEqual(RemoveDuplicates(in, flags), out) {
 		t.Error("wrong answer")
 	}
-	flags = map[string]int{}
+	flags = Flags{
+		F: false,
+		U: false,
+		R: false,
+		N: false,
+		K: -1,
+	}
 	if !reflect.DeepEqual(RemoveDuplicates(in, flags), in) {
 		t.Error("wrong answer")
 	}
 }
 
 func TestMySort(t *testing.T) {
-	flags := map[string]int{
-		"-r": 0,
-		"-u": 0,
-		"-n": 0,
-		"-k": 1}
+	flags := Flags{
+		F: false,
+		U: true,
+		R: true,
+		N: true,
+		K: 1,
+	}
 	in := []string{
 		"Apple 3",
 		"BOOK 4",
@@ -102,10 +80,13 @@ func TestMySort(t *testing.T) {
 	if !reflect.DeepEqual(MySort(in, flags), out) {
 		t.Error("wrong answer")
 	}
-	flags = map[string]int{
-		"-u": 0,
-		"-f": 0,
-		"-k": 0}
+	flags = Flags{
+		F: true,
+		U: true,
+		R: false,
+		N: false,
+		K: 0,
+	}
 	out = []string{
 		"Apple 3",
 		"BOOK 4",

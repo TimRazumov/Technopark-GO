@@ -13,19 +13,19 @@ type stackInt struct {
 	data []int
 }
 
-func (this *stackInt) Top() (val int) {
+func (this *stackInt) Top() (topElem int) {
 	return this.data[this.Size()-1]
 }
 
-func (this *stackInt) Pop() (val int) {
+func (this *stackInt) Pop() (topElem int) {
 	size := this.Size()
-	val = this.data[size-1]
+	topElem = this.data[size-1]
 	this.data = this.data[:size-1]
-	return val
+	return topElem
 }
 
-func (this *stackInt) Push(val ...int) {
-	this.data = append(this.data, val...)
+func (this *stackInt) Push(elems ...int) {
+	this.data = append(this.data, elems...)
 }
 
 func (this *stackInt) Empty() bool {
@@ -40,19 +40,19 @@ type stackString struct {
 	data []string
 }
 
-func (this *stackString) Top() (val string) {
+func (this *stackString) Top() (topElem string) {
 	return this.data[this.Size()-1]
 }
 
-func (this *stackString) Pop() (val string) {
+func (this *stackString) Pop() (topElem string) {
 	size := this.Size()
-	val = this.data[size-1]
+	topElem = this.data[size-1]
 	this.data = this.data[:size-1]
-	return val
+	return topElem
 }
 
-func (this *stackString) Push(val ...string) {
-	this.data = append(this.data, val...)
+func (this *stackString) Push(elems ...string) {
+	this.data = append(this.data, elems...)
 }
 
 func (this *stackString) Empty() bool {
@@ -125,16 +125,16 @@ func Calc(expr []string) (int, error) {
 	for idx := 0; idx < len(expr); idx++ {
 		if num, err := strconv.Atoi(expr[idx]); err == nil {
 			nums.Push(num)
-		} else {
-			if err := MakeOps(&op, &nums, expr[idx]); err != nil {
-				return 0, err
-			}
-			if expr[idx] == "(" && (expr[idx+1] == "+" || expr[idx+1] == "-") {
-				idx++
-				if expr[idx] == "-" {
-					expr[idx+1] = expr[idx] + expr[idx+1]
-					expr[idx] = ""
-				}
+			continue
+		}
+		if err := MakeOps(&op, &nums, expr[idx]); err != nil {
+			return 0, err
+		}
+		if expr[idx] == "(" && (expr[idx+1] == "+" || expr[idx+1] == "-") {
+			idx++
+			if expr[idx] == "-" {
+				expr[idx+1] = expr[idx] + expr[idx+1]
+				expr[idx] = ""
 			}
 		}
 	}

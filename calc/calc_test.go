@@ -1,29 +1,44 @@
 package main
 
 import (
+	"strconv"
 	"testing"
+	// "errors"
 )
 
+type In struct {
+	L  int
+	R  int
+	Op string
+}
+
+type Out struct {
+	Res int
+	Err error
+}
+
 func TestBasicOp(t *testing.T) {
-	res, err := BasicOp(8, 2, "+")
-	if res != 10 || err != nil {
-		t.Error("wrong answer")
+	t.Parallel()
+	var opTests = []struct {
+		in  In
+		out Out
+	}{
+		{In{8, 2, "+"}, Out{10, nil}},
+		{In{8, 2, "-"}, Out{6, nil}},
+		{In{8, 2, "*"}, Out{16, nil}},
+		{In{8, 2, "/"}, Out{4, nil}},
 	}
-	res, err = BasicOp(8, 2, "-")
-	if res != 6 || err != nil {
-		t.Error("wrong answer")
-	}
-	res, err = BasicOp(8, 2, "*")
-	if res != 16 || err != nil {
-		t.Error("wrong answer")
-	}
-	res, err = BasicOp(8, 2, "/")
-	if res != 4 || err != nil {
-		t.Error("wrong answer")
-	}
-	_, err = BasicOp(8, 2, "fff")
-	if err == nil {
-		t.Error("wrong answer")
+
+	for idx, tt := range opTests {
+		idx := idx
+		tt := tt
+		t.Run(strconv.Itoa(idx), func(t *testing.T) {
+			t.Parallel()
+			res, err := BasicOp(tt.in.L, tt.in.R, tt.in.Op)
+			if res != tt.out.Res || err != tt.out.Err {
+				t.Error("wrong answer")
+			}
+		})
 	}
 }
 
